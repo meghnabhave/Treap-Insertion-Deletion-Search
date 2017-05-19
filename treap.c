@@ -1,8 +1,22 @@
+
+/*	TREAP -> A data structure which is a mixture of a binary search tree and a heap
+ * This example shows a Min Treap, i.e. the priority of the child elements is greater than the priority of its parent.
+ * Priority is assigned randomly, ensures random distribution of priorities, i.e tree comes out more balanced.
+ */
+
 #include<stdio.h>
 #include<stdlib.h>
 
+/* STATUS CODE
+ * 0 -> FAILURE
+ * 1 -> SUCCESS
+ * returned by functions as StatusCode 
+ */
 typedef enum{FAIL,SUCCESS}StatusCode;
 
+/* RANDOM NUMBER GENERATOR
+ * returns a random number in the range 1 to max
+ */
 long random_at_most(long max) {
   unsigned long
     // max <= RAND_MAX < ULONG_MAX, so this is okay.
@@ -22,13 +36,28 @@ long random_at_most(long max) {
   return x/bin_size;
 }
 
+
+/* Structure of Node
+ * data -> data value to be stored in node. (Could be of type itemtype)
+ * priority -> random priority number assigned to each node to ensure balanced tree property
+ * left -> pointer to left child/subtree 
+ * right -> pointer to right child/subtree
+ */
 typedef struct node_tag{
-	char data;
+	char data;.
 	int priority;
 	struct node_tag *left;
 	struct node_tag *right;
 }node;
 
+
+
+/* FUNCTION MAKENODE
+ * Returns a pointer to node with data field set to data
+ * left set to NULL
+ * right set to NULL
+ * priority set to a random value between 1 to 99
+ */
 node* makeNode(char data){
 	node *nptr = (node*)malloc(sizeof(node));
 	nptr->data = data;
@@ -39,6 +68,14 @@ node* makeNode(char data){
 	return(nptr);
 }
 
+
+
+/* Function Rotate Left
+ * rotates nptr one level left
+ * returns the pointer to node at current nptr position
+ * USAGE: parent -> child = rotateLeft(parent->child); 
+ *	--> child can be left or right child of parent node
+ */
 node* rotateLeft(node *nptr){
 
 	node *q = NULL;
@@ -54,6 +91,13 @@ node* rotateLeft(node *nptr){
 	
 }
 
+
+/* FUNCTION Rotate Right
+ * rotates nptr node one level right
+ * returns new pointer to node at the position of nptr
+ * USAGE: parent -> child = rotateRight(parent -> child)
+ *	--> child can be left or right child of parent
+ */
 node* rotateRight(node *nptr){
 
 	node *q = NULL;
@@ -70,14 +114,20 @@ node* rotateRight(node *nptr){
 }
 
 
+/* FUNCTION INSERT IN TREAP (Recursive)
+ * Parameters: root -> root of tree , nptr -> node to be inserted
+ * Returns: root of tree after insertion
+ * Recursively goes through all nodes satisfying BST property (against data) and Min Heap property (against priority).
+ * Does rotations to satisfy Min Heap property.
+ */
 node* insert(node *root,node *nptr){
 	
 	if(root==NULL)
-		root = nptr;
+		root = nptr;		//if tree is NULL
 	else{
 		if(nptr->data<root->data){
-			root->left = insert(root->left,nptr);
-			if(root->left->priority < root->priority){
+			root->left = insert(root->left,nptr);	//go left if nptr data is less than current root.
+			if(root->left->priority < root->priority){	//rotate from bottom up to satisfy min heap property
 				root = rotateRight(root);
 			}
 		}
@@ -93,6 +143,13 @@ node* insert(node *root,node *nptr){
 	return root;
 }
 
+
+/* FUNCTION CREATE TREAP
+ * Parameters: n -> number of nodes in treap
+ * Returns: root of the treap with n nodes
+ * Internally asks for data values of the treap.
+ * Functions called: makeNode() and insert()
+ */
 node* CreateTreap(int n){
 	
 	int i;
@@ -106,6 +163,12 @@ node* CreateTreap(int n){
 	return tree;
 }
 
+
+/* FUNCTION PRINT INORDER
+ * Parameter: tree -> root of the treap to be printed inorder (LVR)
+ * Returns: void
+ * Utility: to check if BST property is satisfied. (Debugging)
+ */
 void printTreeinOrder(node *tree){
 	
 
@@ -117,6 +180,13 @@ void printTreeinOrder(node *tree){
 	}
 }
 
+
+
+/* FUNCTION PRINT PREORDER
+ * Parameter: tree -> root of the treap to be printed preorder (VLR)
+ * Returns: void
+ * Utility: to check if min heap property is satisfied. (Debugging)
+ */
 void printTreepreOrder(node *tree){
 	if(tree !=NULL)
 	{
@@ -126,6 +196,12 @@ void printTreepreOrder(node *tree){
 	}
 }
 
+
+/* FUNCTION SEARCH TREAP (Recursive)
+ * Parameter: root -> root of the treap , n -> character/data to be searched for
+ * Returns: StatusCode ---> SUCCESS = 1 if data is found, FAILURE = 0 if not found.
+ * Checks current root data value and uses BST property to recurse to left or right subtree.
+ */
 StatusCode Search(node *root,char n){
 	StatusCode SC;
 	if(root == NULL){
@@ -143,6 +219,18 @@ StatusCode Search(node *root,char n){
 	return SC;
 }
 
+/* FUNCTION DELETION IN BST
+ * Parameters: nptr -> node to be deleted in the treap
+ * Return value: pointer to new root of the treap
+ * Case 1: nptr is leaf node
+ 	--> delete nptr and assign parent to NULL
+ * Case 2: nptr has one subtree
+ 	--> delete nptr and attach the subtree directly to the parent node
+ * Case 3: nptr has two subtrees
+ 	--> Deletes nptr and finds the largest value in the left subtree to replace the hole with.
+	
+ ******* THIS FUNCTION IS JUST FOR DEBUGGING, NOT REQUIRED IN THE TREAP *******
+ */
 node* deleteBST(node *nptr){
 	node *newroot=NULL;
 	if(nptr !=NULL){
@@ -189,6 +277,13 @@ node* deleteBST(node *nptr){
 	return newroot;
 }
 
+/* FUNCTION DELETION IN TREAP (Recursive)
+ * PARAMETERS: root -> root of the treap, d -> data part of the node to be deleted, SC -> passed by reference, stores the StatusCode (SUCCESS or FAILURE of DELETION)
+ * RETURNS: new root of the treap after deletion
+ * Searches for character d in the treap
+ * Once found, brings the node to be deleted to leaf/single child level by rotations so that min heap property is satisfied after deletion.
+ * If not found, SC is set to FAIL
+ */
 node* delete(node *root,char d,StatusCode *SC){
 	if(root == NULL){
 		*SC = FAIL;
@@ -247,6 +342,7 @@ void main(){
 	int choice;
 	char c;
 	do{
+		// menu 
 		printf("Enter your choice: \n1.Insert\n2.Delete\n3.Search\n4.Exit\nEnter: ");
 		scanf("%d",&choice);
 		switch(choice){
@@ -272,6 +368,8 @@ void main(){
 				break;
 			default: printf("Invalid choice");
 		}
+		
+		//to check if the treap is satisfying all properties
 		printf("\n");
 		printf("\n");
 		printf("Inorder: ");
